@@ -1,4 +1,13 @@
 <?php
+/*
+|--------------------------------------------------------------------------
+| DashboardController
+|--------------------------------------------------------------------------
+| Builds role-specific dashboard cards, analytics collections, and recent
+| activity views for each user type.
+|
+*/
+
 class DashboardController extends Controller
 {
     private User $userModel;
@@ -22,6 +31,7 @@ class DashboardController extends Controller
         $role = Auth::role();
         $userId = Auth::userId();
 
+        // Each role receives a dedicated dashboard view while sharing one controller entry point.
         $dashboardMap = [
             'customer' => 'dashboards/customer',
             'host' => 'dashboards/host',
@@ -31,6 +41,7 @@ class DashboardController extends Controller
             'host_location_admin' => 'dashboards/host_location_admin',
         ];
 
+        // Host dashboards include the linked profile needed for property ownership context.
         $hostProfile = $role === 'host' ? $this->hostModel->findByUserId($userId) : null;
         $stats = $this->buildStats($role, $userId);
         $analytics = $this->buildAnalytics($role, $userId);
@@ -49,6 +60,7 @@ class DashboardController extends Controller
     private function buildStats(?string $role, ?int $userId): array
     {
         if ($role === 'customer') {
+            // Customer cards focus on personal booking activity.
             return [
                 'my_bookings' => $this->bookingModel->countForCustomer((int) $userId),
                 'pending_bookings' => $this->bookingModel->countForCustomerByStatus((int) $userId, 'pending'),
@@ -58,6 +70,7 @@ class DashboardController extends Controller
         }
 
         if ($role === 'host') {
+            // Host cards summarize owned properties, bookings, and confirmed revenue.
             return [
                 'my_properties' => $this->propertyModel->countForHostUser((int) $userId),
                 'approved_properties' => $this->propertyModel->countForHostUserByStatus((int) $userId, 'approved'),
@@ -67,6 +80,7 @@ class DashboardController extends Controller
             ];
         }
 
+        // Admin cards aggregate platform-wide counts and confirmed booking revenue.
         return [
             'users' => $this->userModel->countAll(),
             'properties' => $this->propertyModel->countAll(),
@@ -83,6 +97,7 @@ class DashboardController extends Controller
 
     private function buildAnalytics(?string $role, ?int $userId): array
     {
+        // Analytics collections feed dashboard charts and recent activity tables.
         if ($role === 'customer') {
             return [
                 'bookingStatus' => $this->bookingModel->statusBreakdownForCustomer((int) $userId),

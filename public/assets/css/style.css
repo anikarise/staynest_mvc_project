@@ -300,6 +300,7 @@ a { color: inherit; text-decoration: none; }
     .home-hero p { font-size: 1.2rem; }
     .business-card-frame { border-radius: 20px; }
     .business-card-frame img { border-radius: 14px; }
+    .phone-field { grid-template-columns: 1fr; }
 }
 
 /* Phase 2 authentication and dashboard improvements */
@@ -314,6 +315,19 @@ a { color: inherit; text-decoration: none; }
 .alert-success { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
 .alert-error { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
 .field-error { color: #b91c1c; font-weight: 600; margin-top: -6px; }
+.phone-field {
+    display: grid;
+    grid-template-columns: minmax(150px, .45fr) minmax(180px, 1fr);
+    gap: 10px;
+}
+.phone-field select,
+.phone-field input {
+    min-height: 50px;
+}
+.phone-hint {
+    margin-top: -6px;
+    font-size: .86rem;
+}
 .user-pill {
     border: 1px solid rgba(255,255,255,.25);
     background: rgba(255,255,255,.1);
@@ -354,6 +368,10 @@ a { color: inherit; text-decoration: none; }
     color: #0b3a7c;
 }
 .badge-green { background: #dcfce7; color: #166534; }
+.badge-account-active { background: #dcfce7; color: #166534; }
+.badge-account-pending { background: #fef3c7; color: #92400e; }
+.badge-account-rejected { background: #fee2e2; color: #991b1b; }
+.badge-account-inactive { background: #e5e7eb; color: #374151; }
 .table-card {
     background: var(--white);
     border: 1px solid var(--border);
@@ -625,6 +643,92 @@ textarea {
 .booking-stats {
     margin-bottom: 24px;
 }
+.booking-filter-panel {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(180px, .32fr) auto;
+    gap: 14px;
+    align-items: end;
+    margin: 0 0 24px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    box-shadow: 0 18px 45px rgba(15, 23, 42, .06);
+}
+.management-filter-panel {
+    display: grid;
+    gap: 14px;
+    align-items: end;
+    margin: 0 0 24px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    box-shadow: 0 18px 45px rgba(15, 23, 42, .06);
+}
+.host-filter-panel {
+    grid-template-columns: minmax(280px, 1fr) minmax(180px, .34fr) auto;
+}
+.user-filter-panel {
+    grid-template-columns: minmax(260px, 1fr) minmax(170px, .32fr) minmax(180px, .34fr) auto;
+}
+.booking-filter-field {
+    display: grid;
+    gap: 8px;
+}
+.booking-filter-field label {
+    color: var(--primary);
+    font-size: .84rem;
+    font-weight: 800;
+}
+.booking-filter-field input,
+.booking-filter-field select {
+    min-height: 48px;
+    background: var(--white);
+}
+.booking-filter-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+}
+.booking-search-btn {
+    min-height: 48px;
+    gap: 9px;
+    background: var(--primary-light);
+    white-space: nowrap;
+}
+.booking-reset-btn {
+    min-height: 48px;
+    white-space: nowrap;
+}
+.search-icon {
+    position: relative;
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+}
+.search-icon::after {
+    content: "";
+    position: absolute;
+    width: 7px;
+    height: 2px;
+    right: -6px;
+    bottom: -3px;
+    border-radius: 999px;
+    background: currentColor;
+    transform: rotate(45deg);
+    transform-origin: left center;
+}
+.booking-empty-state {
+    padding: 42px 22px;
+}
+.booking-empty-state h2 {
+    margin-top: 0;
+    color: var(--primary);
+}
 .booking-table-card td {
     vertical-align: middle;
 }
@@ -656,8 +760,16 @@ textarea {
     color: var(--primary);
 }
 @media (max-width: 850px) {
-    .booking-toolbar { grid-template-columns: 1fr; }
+    .booking-toolbar,
+    .booking-filter-panel,
+    .management-filter-panel { grid-template-columns: 1fr; }
+    .booking-filter-actions { justify-content: stretch; }
+    .booking-filter-actions .btn { flex: 1 1 0; }
     .form-row-two { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+    .booking-filter-actions { flex-direction: column; align-items: stretch; }
+    .phone-field { grid-template-columns: 1fr; }
 }
 
 /* Phase 6 dashboard analytics, reports, and final polish */

@@ -1,4 +1,13 @@
 <?php
+/*
+|--------------------------------------------------------------------------
+| PropertyController
+|--------------------------------------------------------------------------
+| Handles property listing, host submissions, manager approval, validation,
+| image uploads, and safe deletion.
+|
+*/
+
 class PropertyController extends Controller
 {
     private Property $propertyModel;
@@ -25,6 +34,7 @@ class PropertyController extends Controller
         $canManage = Auth::check() && in_array($role, $this->managerRoles, true);
         $isHost = Auth::check() && $role === 'host';
 
+        // Public users see only approved properties; managers and hosts receive broader scoped lists.
         if ($canManage) {
             $properties = $this->propertyModel->listForManager($search, $locationId, $availability, $status);
             $mode = 'manager';
@@ -63,6 +73,7 @@ class PropertyController extends Controller
         $canManage = Auth::check() && in_array($role, $this->managerRoles, true);
         $isHostOwner = Auth::check() && $role === 'host' && $this->propertyModel->userOwnsProperty($id, Auth::userId());
 
+        // Non-approved properties are hidden unless the viewer manages or owns them.
         if (($property['status'] ?? '') !== 'approved' && !$canManage && !$isHostOwner) {
             http_response_code(403);
             require APP_ROOT . '/app/views/errors/403.php';
@@ -98,6 +109,7 @@ class PropertyController extends Controller
             'price' => '',
             'category' => 'Apartment',
             'availability' => 'available',
+            // Host submissions enter moderation; manager-created properties are approved immediately.
             'status' => $isManager ? 'approved' : 'pending',
         ], $isManager);
 
@@ -170,6 +182,7 @@ class PropertyController extends Controller
         }
 
         $bookingCount = $this->propertyModel->countBookings($id);
+        // Properties with booking history are protected from accidental deletion.
         if ($bookingCount > 0) {
             Auth::flash('error', 'Cannot delete this property because it has ' . $bookingCount . ' booking record(s).');
             $this->redirect('property');
@@ -196,6 +209,7 @@ class PropertyController extends Controller
     {
         Auth::requireRole($this->managerRoles);
 
+        // Property approval/rejection is limited to booking/property administrators.
         if (!$this->isPost() || !Auth::verifyCsrf($_POST['csrf_token'] ?? null)) {
             Auth::flash('error', 'Invalid moderation request.');
             $this->redirect('property');
@@ -233,6 +247,7 @@ class PropertyController extends Controller
 
     private function handleForm(array $data, ?array $existingProperty): array
     {
+        // Validate form ownership and moderation fields before saving property records.
         if (!Auth::verifyCsrf($_POST['csrf_token'] ?? null)) {
             $data['errors']['general'] = 'Security token expired. Please submit the form again.';
             return $data;
@@ -244,6 +259,7 @@ class PropertyController extends Controller
         $existingImage = $existingProperty['image'] ?? '';
 
         $hostId = $isManager ? (int) $this->input('host_id') : (int) ($host['host_id'] ?? 0);
+        // Hosts cannot self-approve; their edits return to pending moderation.
         $status = $isManager ? $this->input('status', 'pending') : 'pending';
 
         $property = [
@@ -293,6 +309,7 @@ class PropertyController extends Controller
         }
 
         $uploadResult = $this->handleImageUpload($existingImage);
+        // Image upload validation is isolated so create/edit share the same checks.
         if (!empty($uploadResult['error'])) {
             $data['errors']['image'] = $uploadResult['error'];
         } elseif (!empty($uploadResult['filename'])) {
@@ -315,6 +332,7 @@ class PropertyController extends Controller
 
         $file = $_FILES['image'];
         $maxSize = 2 * 1024 * 1024;
+        // Keep uploads small and verify the MIME type using image metadata.
         if ($file['size'] > $maxSize) {
             return ['filename' => null, 'error' => 'Image must be 2MB or smaller.'];
         }
@@ -341,6 +359,7 @@ class PropertyController extends Controller
             mkdir($uploadDir, 0775, true);
         }
 
+        // Randomized filenames avoid collisions and hide original client filenames.
         $filename = 'property_' . date('YmdHis') . '_' . bin2hex(random_bytes(5)) . '.' . $allowedMime[$mime];
         $destination = $uploadDir . '/' . $filename;
 
@@ -358,6 +377,7 @@ class PropertyController extends Controller
             return;
         }
 
+        // Ignore path-like filenames so deletion stays inside the property upload folder.
         if (strpos($filename, '/') !== false || strpos($filename, '\\') !== false) {
             return;
         }

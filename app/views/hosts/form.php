@@ -1,4 +1,14 @@
-<?php require APP_ROOT . '/app/views/layouts/header.php'; ?>
+<?php
+/*
+|--------------------------------------------------------------------------
+| Host Form View
+|--------------------------------------------------------------------------
+| Collects structured host contact details while controller logic validates
+| linked users, email format, and country-specific phone rules.
+|
+*/
+require APP_ROOT . '/app/views/layouts/header.php';
+?>
 <section class="container section two-column">
     <div class="form-card">
         <h1><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></h1>
@@ -38,9 +48,30 @@
             <label>Company Description</label>
             <textarea name="company_description" rows="5" placeholder="Short description about the host or company"><?= htmlspecialchars($host['company_description'] ?? '', ENT_QUOTES, 'UTF-8'); ?></textarea>
 
-            <label>Contact Information</label>
-            <input type="text" name="contact_information" value="<?= htmlspecialchars($host['contact_information'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Email, phone, or office contact">
-            <?php if (!empty($errors['contact_information'])): ?><small class="field-error"><?= htmlspecialchars($errors['contact_information'], ENT_QUOTES, 'UTF-8'); ?></small><?php endif; ?>
+            <label>Contact Email</label>
+            <input id="hostContactEmailInput" type="email" name="contact_email" value="<?= htmlspecialchars($host['contact_email'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="host@example.com" autocomplete="email" required>
+            <small class="field-error phone-js-error" id="hostContactEmailError" hidden></small>
+            <?php if (!empty($errors['contact_email'])): ?><small class="field-error"><?= htmlspecialchars($errors['contact_email'], ENT_QUOTES, 'UTF-8'); ?></small><?php endif; ?>
+
+            <label>Phone Number</label>
+            <div class="phone-field host-phone-field">
+                <select name="country_code" id="hostContactCountryCodeSelect" aria-label="Country code">
+                    <?php foreach (($phoneCountries ?? []) as $code => $country): ?>
+                        <option
+                            value="<?= htmlspecialchars($code, ENT_QUOTES, 'UTF-8'); ?>"
+                            data-min="<?= (int) $country['min']; ?>"
+                            data-max="<?= (int) $country['max']; ?>"
+                            data-placeholder="<?= htmlspecialchars($country['placeholder'], ENT_QUOTES, 'UTF-8'); ?>"
+                            <?= ($host['country_code'] ?? '+45') === $code ? 'selected' : ''; ?>>
+                            <?= htmlspecialchars($country['label'], ENT_QUOTES, 'UTF-8'); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <input id="hostContactPhoneInput" type="tel" name="contact_phone" value="<?= htmlspecialchars($host['contact_phone'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" inputmode="numeric" autocomplete="tel-national" placeholder="12 34 56 78" required>
+            </div>
+            <small class="muted phone-hint" id="hostContactPhoneHint">Numbers only.</small>
+            <small class="field-error phone-js-error" id="hostContactPhoneError" hidden></small>
+            <?php if (!empty($errors['contact_phone'])): ?><small class="field-error"><?= htmlspecialchars($errors['contact_phone'], ENT_QUOTES, 'UTF-8'); ?></small><?php endif; ?>
 
             <div class="form-actions">
                 <button class="btn" type="submit"><?= ($mode ?? 'create') === 'create' ? 'Save Host Profile' : 'Update Host Profile'; ?></button>

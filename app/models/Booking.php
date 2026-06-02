@@ -1,4 +1,13 @@
 <?php
+/*
+|--------------------------------------------------------------------------
+| Booking Model
+|--------------------------------------------------------------------------
+| Encapsulates booking persistence, relationship queries, search filters,
+| conflict checks, and dashboard statistics.
+|
+*/
+
 class Booking extends Model
 {
     public function listForManager(?string $search = null, ?string $status = null): array
@@ -19,6 +28,7 @@ class Booking extends Model
     public function listForCustomer(int $userId, ?string $search = null, ?string $status = null): array
     {
         [$where, $params] = $this->buildFilters($search, $status);
+        // Scope customer queries to records owned by the current session user.
         $where[] = 'b.user_id = :current_user_id';
         $params['current_user_id'] = $userId;
 
@@ -31,6 +41,7 @@ class Booking extends Model
     public function listForHostUser(int $userId, ?string $search = null, ?string $status = null): array
     {
         [$where, $params] = $this->buildFilters($search, $status);
+        // Scope host queries through the linked host profile relationship.
         $where[] = 'h.user_id = :host_user_id';
         $params['host_user_id'] = $userId;
 
@@ -124,6 +135,7 @@ class Booking extends Model
 
     public function hasDateConflict(int $propertyId, string $checkIn, string $checkOut, ?int $excludeBookingId = null, array $statuses = ['pending', 'confirmed']): bool
     {
+        // Overlap check compares active bookings on the same property date range.
         $statusPlaceholders = [];
         $params = [
             'property_id' => $propertyId,
@@ -167,11 +179,13 @@ class Booking extends Model
 
     public function totalConfirmedRevenue(): float
     {
+        // Revenue totals only confirmed bookings so pending/rejected requests do not inflate income.
         return (float) $this->db->query('SELECT COALESCE(SUM(total_price), 0) FROM bookings WHERE booking_status = "confirmed"')->fetchColumn();
     }
 
     private function baseSelect(): string
     {
+        // Shared relationship query supplies table views and dashboards with joined booking context.
         return 'SELECT b.*, u.name AS customer_name, u.email AS customer_email, u.phone AS customer_phone,
                        p.title AS property_title, p.price AS property_price, p.category, p.availability AS property_availability, p.status AS property_status,
                        h.company_name, h.user_id AS host_user_id,
@@ -189,8 +203,26 @@ class Booking extends Model
         $params = [];
 
         if ($search !== null && trim($search) !== '') {
-            $where[] = '(u.name LIKE :search OR u.email LIKE :search OR p.title LIKE :search OR h.company_name LIKE :search OR l.city LIKE :search OR l.area LIKE :search)';
-            $params['search'] = '%' . trim($search) . '%';
+            // Search filters are parameterized to keep table filtering safe and composable.
+            $searchFields = [
+                'CAST(b.booking_id AS CHAR)',
+                'u.name',
+                'u.email',
+                'p.title',
+                'h.company_name',
+                'l.city',
+                'l.area',
+                'l.country',
+                'l.postal_code',
+                'b.booking_status',
+            ];
+            $searchParts = [];
+            foreach ($searchFields as $index => $field) {
+                $key = 'search_' . $index;
+                $searchParts[] = $field . ' LIKE :' . $key;
+                $params[$key] = '%' . trim($search) . '%';
+            }
+            $where[] = '(' . implode(' OR ', $searchParts) . ')';
         }
 
         if ($status !== null && in_array($status, ['pending', 'confirmed', 'rejected', 'cancelled'], true)) {
@@ -250,6 +282,7 @@ class Booking extends Model
 
     public function monthlyRevenue(int $months = 6): array
     {
+        // Monthly revenue powers dashboard trend cards and charts.
         $months = max(1, min(12, $months));
         $sql = 'SELECT DATE_FORMAT(booking_date, "%Y-%m") AS label,
                        COUNT(*) AS bookings,

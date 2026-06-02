@@ -1,8 +1,18 @@
 <?php
+/*
+|--------------------------------------------------------------------------
+| Property Model
+|--------------------------------------------------------------------------
+| Encapsulates property queries, approval filters, host ownership checks,
+| availability lookups, and dashboard statistics.
+|
+*/
+
 class Property extends Model
 {
     public function listForPublic(?string $search = null, ?int $locationId = null, ?string $availability = null): array
     {
+        // Public listings are always constrained to approved records.
         [$where, $params] = $this->buildSearchFilters($search, $locationId, $availability, 'approved');
 
         $sql = $this->baseSelect() . ' WHERE ' . implode(' AND ', $where) . ' ORDER BY p.created_at DESC';
@@ -29,6 +39,7 @@ class Property extends Model
     public function listForHostUser(int $userId, ?string $search = null, ?int $locationId = null, ?string $availability = null, ?string $status = null): array
     {
         [$where, $params] = $this->buildSearchFilters($search, $locationId, $availability, $status);
+        // Host-scoped listings use the linked host profile relationship.
         $where[] = 'h.user_id = :host_user_id';
         $params['host_user_id'] = $userId;
 
@@ -41,6 +52,7 @@ class Property extends Model
 
     public function listApprovedAvailable(): array
     {
+        // Booking forms only offer properties that are approved and available.
         $stmt = $this->db->query($this->baseSelect() . ' WHERE p.status = "approved" AND p.availability = "available" ORDER BY p.title ASC');
         return $stmt->fetchAll();
     }
@@ -119,6 +131,7 @@ class Property extends Model
 
     public function countBookings(int $id): int
     {
+        // Relationship check protects properties that already have booking history.
         $stmt = $this->db->prepare('SELECT COUNT(*) FROM bookings WHERE property_id = :id');
         $stmt->execute(['id' => $id]);
         return (int) $stmt->fetchColumn();
@@ -126,6 +139,7 @@ class Property extends Model
 
     public function userOwnsProperty(int $propertyId, int $userId): bool
     {
+        // Ownership is resolved through properties -> hosts -> users.
         $stmt = $this->db->prepare(
             'SELECT COUNT(*) FROM properties p
              INNER JOIN hosts h ON h.host_id = p.host_id
@@ -149,6 +163,7 @@ class Property extends Model
 
     private function baseSelect(): string
     {
+        // Centralized join keeps views consistent across public, host, and admin lists.
         return 'SELECT p.*, h.company_name, h.user_id AS host_user_id, u.name AS host_user_name, u.email AS host_email,
                        l.city, l.area, l.country, l.postal_code,
                        (SELECT COUNT(*) FROM bookings b WHERE b.property_id = p.property_id) AS booking_count
@@ -160,6 +175,7 @@ class Property extends Model
 
     private function buildSearchFilters(?string $search, ?int $locationId, ?string $availability, ?string $status): array
     {
+        // Optional filters are composed into parameterized WHERE clauses.
         $where = [];
         $params = [];
 

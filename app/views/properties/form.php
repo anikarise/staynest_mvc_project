@@ -1,4 +1,14 @@
-<?php require APP_ROOT . '/app/views/layouts/header.php'; ?>
+<?php
+/*
+|--------------------------------------------------------------------------
+| Property Form View
+|--------------------------------------------------------------------------
+| Collects listing details and image input; approval and upload validation
+| remain handled by the controller.
+|
+*/
+require APP_ROOT . '/app/views/layouts/header.php';
+?>
 <section class="container section two-column">
     <div class="form-card">
         <h1><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8'); ?></h1>

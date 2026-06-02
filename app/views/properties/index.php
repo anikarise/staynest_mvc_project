@@ -1,4 +1,14 @@
-<?php require APP_ROOT . '/app/views/layouts/header.php'; ?>
+<?php
+/*
+|--------------------------------------------------------------------------
+| Property Listing View
+|--------------------------------------------------------------------------
+| Displays public, host, or manager property lists with search filters and
+| role-specific action buttons.
+|
+*/
+require APP_ROOT . '/app/views/layouts/header.php';
+?>
 <section class="container section">
     <div class="section-heading">
         <div>

@@ -1,4 +1,14 @@
-<?php require APP_ROOT . '/app/views/layouts/header.php'; ?>
+<?php
+/*
+|--------------------------------------------------------------------------
+| Booking Management View
+|--------------------------------------------------------------------------
+| Presents filtered booking records, dashboard statistics, and CSRF-protected
+| booking status actions.
+|
+*/
+require APP_ROOT . '/app/views/layouts/header.php';
+?>
 <section class="container section">
     <div class="section-heading">
         <div>
@@ -27,26 +37,32 @@
         </div>
     <?php endif; ?>
 
-    <form class="toolbar booking-toolbar" method="get" action="<?= URL_ROOT; ?>/booking">
-        <input type="text" name="search" value="<?= htmlspecialchars($search ?? '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Search customer, property, host, city, area">
-        <select name="status">
-            <option value="">Any status</option>
-            <?php foreach ($statuses as $statusOption): ?>
-                <option value="<?= htmlspecialchars($statusOption, ENT_QUOTES, 'UTF-8'); ?>" <?= ($status ?? '') === $statusOption ? 'selected' : ''; ?>>
-                    <?= htmlspecialchars(ucfirst($statusOption), ENT_QUOTES, 'UTF-8'); ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-        <button class="btn" type="submit">Filter</button>
-        <?php if (!empty($search) || !empty($status)): ?>
-            <a class="btn btn-secondary" href="<?= URL_ROOT; ?>/booking">Clear</a>
-        <?php endif; ?>
+    <form class="booking-filter-panel" method="get" action="<?= URL_ROOT; ?>/booking">
+        <div class="booking-filter-field booking-filter-search">
+            <label for="bookingSearch">Search bookings</label>
+            <input id="bookingSearch" type="text" name="search" value="<?= htmlspecialchars($search ?? '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Booking ID, customer, email, property, location, status">
+        </div>
+        <div class="booking-filter-field">
+            <label for="bookingStatus">Status</label>
+            <select id="bookingStatus" name="status">
+                <option value="">All statuses</option>
+                <?php foreach ($statuses as $statusOption): ?>
+                    <option value="<?= htmlspecialchars($statusOption, ENT_QUOTES, 'UTF-8'); ?>" <?= ($status ?? '') === $statusOption ? 'selected' : ''; ?>>
+                        <?= htmlspecialchars(ucfirst($statusOption), ENT_QUOTES, 'UTF-8'); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="booking-filter-actions">
+            <button class="btn booking-search-btn" type="submit"><span class="search-icon" aria-hidden="true"></span>Search</button>
+            <a class="btn btn-secondary booking-reset-btn" href="<?= URL_ROOT; ?>/booking">Reset</a>
+        </div>
     </form>
 
     <?php if (empty($bookings)): ?>
-        <div class="card center">
-            <h2>No bookings found</h2>
-            <p class="muted">No booking records match your current view or filters.</p>
+        <div class="card center booking-empty-state">
+            <h2>No matching bookings found.</h2>
+            <p class="muted">Try a different customer, property, location, or status filter.</p>
         </div>
     <?php else: ?>
         <div class="table-card booking-table-card">

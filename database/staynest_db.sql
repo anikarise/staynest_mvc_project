@@ -21,6 +21,7 @@ CREATE TABLE users (
     phone VARCHAR(30) NULL,
     role ENUM('customer','host','staff','main_admin','booking_property_admin','host_location_admin') NOT NULL DEFAULT 'customer',
     status ENUM('active','inactive','blocked') NOT NULL DEFAULT 'active',
+    account_status ENUM('active','pending','rejected') NOT NULL DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -93,6 +94,7 @@ CREATE TABLE bookings (
 ) ENGINE=InnoDB;
 
 CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_account_status ON users(account_status);
 CREATE INDEX idx_properties_status ON properties(status);
 CREATE INDEX idx_properties_availability ON properties(availability);
 CREATE INDEX idx_properties_category ON properties(category);
@@ -102,16 +104,16 @@ CREATE INDEX idx_locations_city ON locations(city);
 
 -- Demo password for every seeded user: password123
 -- Hash generated using PHP password_hash('password123', PASSWORD_BCRYPT)
-INSERT INTO users (name, email, password, phone, role, status) VALUES
-('Main Admin', 'admin@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000001', 'main_admin', 'active'),
-('Booking Property Admin', 'bookingadmin@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000002', 'booking_property_admin', 'active'),
-('Host Location Admin', 'hostadmin@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000003', 'host_location_admin', 'active'),
-('Demo Host', 'host@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000004', 'host', 'active'),
-('Demo Customer', 'customer@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000005', 'customer', 'active'),
-('Demo Staff', 'staff@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000006', 'staff', 'active'),
-('Available Host User', 'availablehost@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000007', 'host', 'active'),
-('Nordic Host', 'nordichost@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000008', 'host', 'active'),
-('Second Customer', 'customer2@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000009', 'customer', 'active');
+INSERT INTO users (name, email, password, phone, role, status, account_status) VALUES
+('Main Admin', 'admin@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000001', 'main_admin', 'active', 'active'),
+('Booking Property Admin', 'bookingadmin@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000002', 'booking_property_admin', 'active', 'active'),
+('Host Location Admin', 'hostadmin@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000003', 'host_location_admin', 'active', 'active'),
+('Demo Host', 'host@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000004', 'host', 'active', 'active'),
+('Demo Customer', 'customer@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000005', 'customer', 'active', 'active'),
+('Demo Staff', 'staff@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000006', 'staff', 'active', 'active'),
+('Available Host User', 'availablehost@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000007', 'host', 'active', 'active'),
+('Nordic Host', 'nordichost@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000008', 'host', 'active', 'active'),
+('Second Customer', 'customer2@staynest.test', '$2y$12$phB6e0/cVSUqmjk3/mS94.VJqU0gEqQEOjl5O4yy2.DUUDrxm7SpO', '+4500000009', 'customer', 'active', 'active');
 
 INSERT INTO locations (city, area, country, postal_code) VALUES
 ('Copenhagen', 'Nørrebro', 'Denmark', '2200'),

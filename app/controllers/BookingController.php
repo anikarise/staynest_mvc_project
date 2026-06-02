@@ -1,4 +1,13 @@
 <?php
+/*
+|--------------------------------------------------------------------------
+| BookingController
+|--------------------------------------------------------------------------
+| Coordinates booking creation, editing, moderation, cancellation, and role-
+| specific booking views.
+|
+*/
+
 class BookingController extends Controller
 {
     private Booking $bookingModel;
@@ -20,11 +29,13 @@ class BookingController extends Controller
         Auth::requireRole(['main_admin', 'booking_property_admin', 'customer', 'staff', 'host']);
 
         $search = trim((string) ($_GET['search'] ?? ''));
-        $status = trim((string) ($_GET['status'] ?? '')) ?: null;
+        $status = trim((string) ($_GET['status'] ?? ''));
+        $status = in_array($status, $this->statuses, true) ? $status : null;
         $role = Auth::role();
         $canManage = in_array($role, $this->managerRoles, true);
         $isHost = $role === 'host';
 
+        // Each role sees only the bookings it is allowed to manage or own.
         if ($canManage) {
             $bookings = $this->bookingModel->listForManager($search, $status);
             $mode = 'manager';
@@ -45,6 +56,7 @@ class BookingController extends Controller
             'mode' => $mode,
             'canManage' => $canManage,
             'isHost' => $isHost,
+            // Manager dashboard cards use unfiltered totals for operational overview.
             'stats' => [
                 'total' => $this->bookingModel->countAll(),
                 'pending' => $this->bookingModel->countByStatus('pending'),
@@ -60,12 +72,14 @@ class BookingController extends Controller
         $role = Auth::role();
         $isManager = in_array($role, $this->managerRoles, true);
 
+        // Hosts can view bookings but cannot create customer reservations.
         if (!$isManager && !in_array($role, ['customer', 'staff'], true)) {
             Auth::flash('error', 'Only customers, staff, and booking admins can create bookings.');
             $this->redirect('booking');
         }
 
         $selectedProperty = $propertyId ? $this->propertyModel->findById((int) $propertyId) : null;
+        // Booking form only opens for approved and available properties.
         if ($selectedProperty && (!$this->isBookableProperty($selectedProperty))) {
             Auth::flash('error', 'This property is not currently available for booking.');
             $this->redirect('property');
@@ -195,6 +209,7 @@ class BookingController extends Controller
     {
         Auth::requireRole($this->managerRoles);
 
+        // Status changes are POST-only and CSRF-protected.
         if (!$this->isPost() || !Auth::verifyCsrf($_POST['csrf_token'] ?? null)) {
             Auth::flash('error', 'Invalid booking action.');
             $this->redirect('booking');
@@ -207,6 +222,7 @@ class BookingController extends Controller
         }
 
         if ($status === 'confirmed') {
+            // Confirmation is blocked if property is unavailable or overlaps another confirmed stay.
             if ($booking['property_status'] !== 'approved' || $booking['property_availability'] !== 'available') {
                 Auth::flash('error', 'Cannot confirm because the property is not approved and available.');
                 $this->redirect('booking');
@@ -240,6 +256,7 @@ class BookingController extends Controller
 
     private function handleForm(array $data, ?array $existingBooking, bool $isManager): array
     {
+        // Shared create/edit validation keeps booking rules consistent.
         if (!Auth::verifyCsrf($_POST['csrf_token'] ?? null)) {
             $data['errors']['general'] = 'Security token expired. Please submit the form again.';
             return $data;
@@ -264,6 +281,7 @@ class BookingController extends Controller
             'booking_status' => $status,
         ];
 
+        // Validate the customer, property, dates, and status before saving.
         if ($userId <= 0 || !$this->userModel->findById($userId)) {
             $data['errors']['user_id'] = 'Select a valid customer/user.';
         }
@@ -295,10 +313,12 @@ class BookingController extends Controller
         if (empty($data['errors']) && $property) {
             $excludeId = $existingBooking ? (int) $existingBooking['booking_id'] : null;
             $conflictStatuses = $status === 'confirmed' ? ['confirmed'] : ['pending', 'confirmed'];
+            // Prevent overlapping active bookings for the same property.
             if ($this->bookingModel->hasDateConflict($propertyId, $checkIn, $checkOut, $excludeId, $conflictStatuses)) {
                 $data['errors']['general'] = 'Another active booking already overlaps these dates.';
             }
 
+            // Total price is derived from nights stayed and property nightly rate.
             $nights = $this->calculateNights($checkIn, $checkOut);
             $booking['total_price'] = number_format($nights * (float) $property['price'], 2, '.', '');
         }

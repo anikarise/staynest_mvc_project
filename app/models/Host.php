@@ -1,8 +1,18 @@
 <?php
+/*
+|--------------------------------------------------------------------------
+| Host Model
+|--------------------------------------------------------------------------
+| Provides host profile persistence, linked user lookups, filter queries,
+| relationship checks, and host dashboard statistics.
+|
+*/
+
 class Host extends Model
 {
     public function createForUser(int $userId, string $companyName, ?string $description = null, ?string $contact = null): bool
     {
+        // Public host registration creates the profile shell linked to the new user.
         $stmt = $this->db->prepare(
             'INSERT INTO hosts (user_id, company_name, company_description, contact_information) VALUES (:user_id, :company_name, :company_description, :contact_information)'
         );
@@ -15,17 +25,54 @@ class Host extends Model
         ]);
     }
 
-    public function listAll(?string $search = null): array
+    public function listAll(?string $search = null, ?string $status = null): array
     {
-        $sql = 'SELECT h.*, u.name, u.email, u.phone, u.status, COUNT(p.property_id) AS property_count
+        // Host management search includes both host profile data and linked user data.
+        $sql = 'SELECT h.*, u.name, u.email, u.phone, u.status, u.account_status, COUNT(p.property_id) AS property_count
                 FROM hosts h
                 INNER JOIN users u ON u.user_id = h.user_id
                 LEFT JOIN properties p ON p.host_id = h.host_id';
+        $where = [];
         $params = [];
 
         if ($search !== null && trim($search) !== '') {
-            $sql .= ' WHERE h.company_name LIKE :search OR h.company_description LIKE :search OR h.contact_information LIKE :search OR u.name LIKE :search OR u.email LIKE :search';
-            $params['search'] = '%' . trim($search) . '%';
+            $searchFields = [
+                'CAST(h.host_id AS CHAR)',
+                'h.company_name',
+                'h.company_description',
+                'h.contact_information',
+                'u.name',
+                'u.email',
+                'u.phone',
+                'u.status',
+                'u.account_status',
+            ];
+            $searchParts = [];
+            foreach ($searchFields as $index => $field) {
+                $key = 'search_' . $index;
+                $searchParts[] = $field . ' LIKE :' . $key;
+                $params[$key] = '%' . trim($search) . '%';
+            }
+            $where[] = '(' . implode(' OR ', $searchParts) . ')';
+        }
+
+        if ($status !== null) {
+            if ($status === 'inactive') {
+                $where[] = 'u.status = :status';
+                $params['status'] = 'inactive';
+            } elseif ($status === 'active') {
+                $where[] = 'u.status = :user_status';
+                $where[] = 'u.account_status = :account_status';
+                $params['user_status'] = 'active';
+                $params['account_status'] = 'active';
+            } elseif (in_array($status, ['pending', 'rejected'], true)) {
+                $where[] = 'u.account_status = :account_status';
+                $params['account_status'] = $status;
+            }
+        }
+
+        if (!empty($where)) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
         }
 
         $sql .= ' GROUP BY h.host_id ORDER BY h.host_id DESC';
@@ -98,6 +145,7 @@ class Host extends Model
 
     public function countProperties(int $id): int
     {
+        // Deletion guards use this relationship count before removing a host profile.
         $stmt = $this->db->prepare('SELECT COUNT(*) FROM properties WHERE host_id = :id');
         $stmt->execute(['id' => $id]);
         return (int) $stmt->fetchColumn();
@@ -105,6 +153,7 @@ class Host extends Model
 
     public function availableHostUsers(?int $currentHostId = null): array
     {
+        // Only host-role users without a profile are available for new host profiles.
         $sql = 'SELECT u.user_id, u.name, u.email
                 FROM users u
                 LEFT JOIN hosts h ON h.user_id = u.user_id
@@ -136,6 +185,7 @@ class Host extends Model
 
     public function topHosts(int $limit = 5): array
     {
+        // Dashboard ranking compares host property and booking activity.
         $limit = max(1, min(20, $limit));
         $sql = 'SELECT h.company_name AS label,
                        COUNT(DISTINCT p.property_id) AS properties,

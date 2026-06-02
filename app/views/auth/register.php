@@ -5,7 +5,7 @@
             <img class="logo-img logo-img-large" src="<?= URL_ROOT; ?>/assets/images/staynest-logo.png" alt="StayNest logo">
         </div>
         <h1>Create Account</h1>
-        <p class="muted">Create a Customer, Staff, Host, or Admin account.</p>
+        <p class="muted">Customers can start right away. Staff and Host accounts require Main Admin approval.</p>
 
         <?php if (!empty($errors['general'])): ?>
             <div class="alert alert-error"><?= htmlspecialchars($errors['general'], ENT_QUOTES, 'UTF-8'); ?></div>
@@ -23,14 +23,30 @@
             <?php if (!empty($errors['email'])): ?><small class="field-error"><?= htmlspecialchars($errors['email'], ENT_QUOTES, 'UTF-8'); ?></small><?php endif; ?>
 
             <label>Phone</label>
-            <input type="text" name="phone" value="<?= htmlspecialchars($phone ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+            <div class="phone-field">
+                <select name="country_code" id="countryCodeSelect" aria-label="Country code">
+                    <?php foreach (($phoneCountries ?? []) as $code => $country): ?>
+                        <option
+                            value="<?= htmlspecialchars($code, ENT_QUOTES, 'UTF-8'); ?>"
+                            data-min="<?= (int) $country['min']; ?>"
+                            data-max="<?= (int) $country['max']; ?>"
+                            data-placeholder="<?= htmlspecialchars($country['placeholder'], ENT_QUOTES, 'UTF-8'); ?>"
+                            <?= ($country_code ?? '+45') === $code ? 'selected' : ''; ?>>
+                            <?= htmlspecialchars($country['label'], ENT_QUOTES, 'UTF-8'); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <input id="phoneInput" type="tel" name="phone" value="<?= htmlspecialchars($phone ?? '', ENT_QUOTES, 'UTF-8'); ?>" inputmode="numeric" autocomplete="tel-national" placeholder="12 34 56 78" required>
+            </div>
+            <small class="muted phone-hint" id="phoneHint">Numbers only.</small>
+            <small class="field-error phone-js-error" id="phoneError" hidden></small>
+            <?php if (!empty($errors['phone'])): ?><small class="field-error"><?= htmlspecialchars($errors['phone'], ENT_QUOTES, 'UTF-8'); ?></small><?php endif; ?>
 
             <label>Account Type</label>
             <select name="role" id="roleSelect">
                 <option value="customer" <?= ($role ?? 'customer') === 'customer' ? 'selected' : ''; ?>>Customer</option>
                 <option value="staff" <?= ($role ?? '') === 'staff' ? 'selected' : ''; ?>>Staff</option>
                 <option value="host" <?= ($role ?? '') === 'host' ? 'selected' : ''; ?>>Host</option>
-                <option value="main_admin" <?= ($role ?? '') === 'main_admin' ? 'selected' : ''; ?>>Admin</option>
             </select>
             <?php if (!empty($errors['role'])): ?><small class="field-error"><?= htmlspecialchars($errors['role'], ENT_QUOTES, 'UTF-8'); ?></small><?php endif; ?>
 

@@ -1,4 +1,13 @@
 <?php
+/*
+|--------------------------------------------------------------------------
+| Auth
+|--------------------------------------------------------------------------
+| Centralizes session state, role checks, CSRF helpers, and flash messages
+| used across the MVC controllers.
+|
+*/
+
 class Auth
 {
     public static function check(): bool
@@ -67,6 +76,7 @@ class Auth
     {
         self::requireLogin();
 
+        // Enforce role-based access before protected controllers execute.
         if (!in_array(self::role(), $roles, true)) {
             http_response_code(403);
             require APP_ROOT . '/app/views/errors/403.php';
@@ -76,6 +86,7 @@ class Auth
 
     public static function login(array $user): void
     {
+        // Regenerate the session ID on login to reduce session fixation risk.
         session_regenerate_id(true);
         $_SESSION['user'] = [
             'user_id' => (int) $user['user_id'],
@@ -84,6 +95,7 @@ class Auth
             'phone' => $user['phone'] ?? '',
             'role' => $user['role'],
             'status' => $user['status'] ?? 'active',
+            'account_status' => $user['account_status'] ?? 'active',
         ];
     }
 
@@ -96,10 +108,12 @@ class Auth
         $_SESSION['user']['name'] = $user['name'] ?? $_SESSION['user']['name'];
         $_SESSION['user']['email'] = $user['email'] ?? $_SESSION['user']['email'];
         $_SESSION['user']['phone'] = $user['phone'] ?? ($_SESSION['user']['phone'] ?? '');
+        $_SESSION['user']['account_status'] = $user['account_status'] ?? ($_SESSION['user']['account_status'] ?? 'active');
     }
 
     public static function logout(): void
     {
+        // Clear server and browser session state during logout.
         $_SESSION = [];
 
         if (ini_get('session.use_cookies')) {
@@ -112,6 +126,7 @@ class Auth
 
     public static function csrfToken(): string
     {
+        // Create one token per session for POST form verification.
         if (empty($_SESSION['_csrf_token'])) {
             $_SESSION['_csrf_token'] = bin2hex(random_bytes(32));
         }
@@ -126,6 +141,7 @@ class Auth
 
     public static function verifyCsrf(?string $token): bool
     {
+        // Constant-time comparison protects CSRF checks from timing leaks.
         return isset($_SESSION['_csrf_token']) && is_string($token) && hash_equals($_SESSION['_csrf_token'], $token);
     }
 

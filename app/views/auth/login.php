@@ -27,7 +27,7 @@
 
         <p class="auth-switch muted">
             New to StayNest?
-            <a href="<?= URL_ROOT; ?>/auth/register">Create a customer, staff, host, or admin account</a>.
+            <a href="<?= URL_ROOT; ?>/auth/register">Create a customer, staff, or host account</a>.
         </p>
 
         <div class="demo-box">

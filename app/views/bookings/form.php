@@ -1,4 +1,14 @@
-<?php require APP_ROOT . '/app/views/layouts/header.php'; ?>
+<?php
+/*
+|--------------------------------------------------------------------------
+| Booking Form View
+|--------------------------------------------------------------------------
+| Collects reservation details while controller/model logic validates dates,
+| availability, overlap rules, and total price.
+|
+*/
+require APP_ROOT . '/app/views/layouts/header.php';
+?>
 <section class="container section">
     <div class="section-heading">
         <div>
