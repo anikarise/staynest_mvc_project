@@ -250,6 +250,7 @@ class BookingController extends Controller
             'properties' => $this->propertyModel->listApprovedAvailable(),
             'statuses' => $this->statuses,
             'isManager' => $isManager,
+            'latestCheckInDate' => $this->bookingModel->latestAllowedCheckInDate(),
             'errors' => [],
         ];
     }
@@ -294,10 +295,13 @@ class BookingController extends Controller
         }
 
         $today = date('Y-m-d');
+        $latestCheckIn = $this->bookingModel->latestAllowedCheckInDate();
         if (!$this->isValidDate($checkIn)) {
             $data['errors']['check_in_date'] = 'Select a valid check-in date.';
         } elseif ($checkIn < $today) {
             $data['errors']['check_in_date'] = 'Check-in date cannot be in the past.';
+        } elseif ($checkIn > $latestCheckIn) {
+            $data['errors']['check_in_date'] = 'Check-in date cannot be more than 4 months from today.';
         }
 
         if (!$this->isValidDate($checkOut)) {

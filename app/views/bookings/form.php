@@ -56,7 +56,7 @@ require APP_ROOT . '/app/views/layouts/header.php';
             <div class="form-row-two">
                 <div>
                     <label>Check-in Date</label>
-                    <input type="date" name="check_in_date" value="<?= htmlspecialchars($booking['check_in_date'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" min="<?= date('Y-m-d'); ?>" required>
+                    <input type="date" name="check_in_date" value="<?= htmlspecialchars($booking['check_in_date'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" min="<?= date('Y-m-d'); ?>" max="<?= htmlspecialchars($latestCheckInDate ?? date('Y-m-d', strtotime('+4 months')), ENT_QUOTES, 'UTF-8'); ?>" required>
                     <?php if (!empty($errors['check_in_date'])): ?><div class="field-error"><?= htmlspecialchars($errors['check_in_date'], ENT_QUOTES, 'UTF-8'); ?></div><?php endif; ?>
                 </div>
                 <div>

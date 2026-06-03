@@ -234,13 +234,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const durationError = document.getElementById('bookingDurationError');
         const maxBookingNights = 60;
 
-        function setBookingDurationError(message) {
+        function setBookingDateError(message, field = checkOut) {
             if (durationError) {
                 durationError.textContent = message;
                 durationError.hidden = message === '';
             }
-            if (checkOut) {
-                checkOut.setCustomValidity(message);
+            if (field) {
+                field.setCustomValidity(message);
             }
         }
 
@@ -250,8 +250,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const price = parseFloat(selected?.dataset.price || '0');
             const start = checkIn.value ? new Date(checkIn.value + 'T00:00:00') : null;
             const end = checkOut.value ? new Date(checkOut.value + 'T00:00:00') : null;
+            const maxCheckIn = checkIn.max ? new Date(checkIn.max + 'T00:00:00') : null;
 
-            setBookingDurationError('');
+            checkIn.setCustomValidity('');
+            checkOut.setCustomValidity('');
+            setBookingDateError('', checkOut);
+
+            if (start && maxCheckIn && start > maxCheckIn) {
+                preview.textContent = 'DKK 0.00';
+                setBookingDateError('Check-in date cannot be more than 4 months from today.', checkIn);
+                return;
+            }
 
             if (!price || !start || !end || end <= start) {
                 preview.textContent = 'DKK 0.00';
@@ -261,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const nights = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
             if (nights > maxBookingNights) {
                 preview.textContent = 'DKK 0.00';
-                setBookingDurationError('Bookings cannot be longer than 60 days.');
+                setBookingDateError('Bookings cannot be longer than 60 days.', checkOut);
                 return;
             }
 
@@ -273,7 +282,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         bookingForm.addEventListener('submit', (event) => {
             updateBookingTotal();
-            if (checkOut && !checkOut.checkValidity()) {
+            if (checkIn && !checkIn.checkValidity()) {
+                event.preventDefault();
+                checkIn.reportValidity();
+            } else if (checkOut && !checkOut.checkValidity()) {
                 event.preventDefault();
                 checkOut.reportValidity();
             }

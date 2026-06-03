@@ -11,6 +11,7 @@
 class Booking extends Model
 {
     public const MAX_BOOKING_NIGHTS = 60;
+    public const MAX_CHECKIN_MONTHS_AHEAD = 4;
 
     public function listForManager(?string $search = null, ?string $status = null): array
     {
@@ -177,6 +178,12 @@ class Booking extends Model
         // Business rule: StayNest bookings may not exceed 60 nights.
         $nights = $this->nightsBetween($checkIn, $checkOut);
         return $nights >= 1 && $nights <= self::MAX_BOOKING_NIGHTS;
+    }
+
+    public function latestAllowedCheckInDate(): string
+    {
+        // Business rule: customers cannot start a booking more than 4 months ahead.
+        return (new DateTimeImmutable('today'))->modify('+' . self::MAX_CHECKIN_MONTHS_AHEAD . ' months')->format('Y-m-d');
     }
 
     public function countAll(): int
