@@ -10,6 +10,8 @@
 
 class Booking extends Model
 {
+    public const MAX_BOOKING_NIGHTS = 60;
+
     public function listForManager(?string $search = null, ?string $status = null): array
     {
         [$where, $params] = $this->buildFilters($search, $status);
@@ -163,6 +165,18 @@ class Booking extends Model
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         return (int) $stmt->fetchColumn() > 0;
+    }
+
+    public function nightsBetween(string $checkIn, string $checkOut): int
+    {
+        return (int) (new DateTime($checkIn))->diff(new DateTime($checkOut))->days;
+    }
+
+    public function isDurationAllowed(string $checkIn, string $checkOut): bool
+    {
+        // Business rule: StayNest bookings may not exceed 60 nights.
+        $nights = $this->nightsBetween($checkIn, $checkOut);
+        return $nights >= 1 && $nights <= self::MAX_BOOKING_NIGHTS;
     }
 
     public function countAll(): int

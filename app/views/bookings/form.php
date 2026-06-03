@@ -83,6 +83,7 @@ require APP_ROOT . '/app/views/layouts/header.php';
             <div class="booking-price-preview card">
                 <span class="muted">Estimated total</span>
                 <strong id="bookingTotalPreview">DKK <?= number_format((float) ($booking['total_price'] ?? 0), 2); ?></strong>
+                <div id="bookingDurationError" class="field-error" hidden></div>
                 <small class="muted">Final total is recalculated securely on the server.</small>
             </div>
 

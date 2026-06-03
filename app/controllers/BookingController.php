@@ -306,6 +306,15 @@ class BookingController extends Controller
             $data['errors']['check_out_date'] = 'Check-out date must be after check-in date.';
         }
 
+        if ($this->isValidDate($checkIn) && $this->isValidDate($checkOut) && $checkOut > $checkIn) {
+            $nights = $this->bookingModel->nightsBetween($checkIn, $checkOut);
+            if ($nights < 1) {
+                $data['errors']['check_out_date'] = 'Check-out date must be after check-in date.';
+            } elseif (!$this->bookingModel->isDurationAllowed($checkIn, $checkOut)) {
+                $data['errors']['check_out_date'] = 'Bookings cannot be longer than 60 days.';
+            }
+        }
+
         if (!in_array($status, $this->statuses, true)) {
             $data['errors']['booking_status'] = 'Select a valid booking status.';
         }
@@ -319,8 +328,10 @@ class BookingController extends Controller
             }
 
             // Total price is derived from nights stayed and property nightly rate.
-            $nights = $this->calculateNights($checkIn, $checkOut);
-            $booking['total_price'] = number_format($nights * (float) $property['price'], 2, '.', '');
+            if (empty($data['errors'])) {
+                $nights = $this->bookingModel->nightsBetween($checkIn, $checkOut);
+                $booking['total_price'] = number_format($nights * (float) $property['price'], 2, '.', '');
+            }
         }
 
         $data['booking'] = $booking;

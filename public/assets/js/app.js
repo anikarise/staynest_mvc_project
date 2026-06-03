@@ -231,6 +231,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const checkIn = bookingForm.querySelector('input[name="check_in_date"]');
         const checkOut = bookingForm.querySelector('input[name="check_out_date"]');
         const preview = document.getElementById('bookingTotalPreview');
+        const durationError = document.getElementById('bookingDurationError');
+        const maxBookingNights = 60;
+
+        function setBookingDurationError(message) {
+            if (durationError) {
+                durationError.textContent = message;
+                durationError.hidden = message === '';
+            }
+            if (checkOut) {
+                checkOut.setCustomValidity(message);
+            }
+        }
 
         function updateBookingTotal() {
             if (!propertySelect || !checkIn || !checkOut || !preview) return;
@@ -239,17 +251,32 @@ document.addEventListener('DOMContentLoaded', () => {
             const start = checkIn.value ? new Date(checkIn.value + 'T00:00:00') : null;
             const end = checkOut.value ? new Date(checkOut.value + 'T00:00:00') : null;
 
+            setBookingDurationError('');
+
             if (!price || !start || !end || end <= start) {
                 preview.textContent = 'DKK 0.00';
                 return;
             }
 
             const nights = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
+            if (nights > maxBookingNights) {
+                preview.textContent = 'DKK 0.00';
+                setBookingDurationError('Bookings cannot be longer than 60 days.');
+                return;
+            }
+
             preview.textContent = 'DKK ' + (nights * price).toFixed(2);
         }
 
         [propertySelect, checkIn, checkOut].forEach((field) => {
             if (field) field.addEventListener('change', updateBookingTotal);
+        });
+        bookingForm.addEventListener('submit', (event) => {
+            updateBookingTotal();
+            if (checkOut && !checkOut.checkValidity()) {
+                event.preventDefault();
+                checkOut.reportValidity();
+            }
         });
         updateBookingTotal();
     }

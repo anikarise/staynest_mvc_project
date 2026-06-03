@@ -1,4 +1,26 @@
-# StayNest Testing Checklist
+# StayNest Housing and Property Booking Management System
+## System Testing & Validation Checklist
+
+This checklist was used during prototype testing and sprint validation
+to verify the core functionalities of the StayNest Housing and Property
+Booking Management System.
+
+The testing process covers:
+- Authentication
+- Role-based access control
+- Property management
+- Booking workflows
+- Host and location management
+- Dashboard analytics
+- Validation and security checks
+- Frontend and backend functionality
+
+Environment:
+- PHP MVC Architecture
+- MySQL Database
+- XAMPP Localhost Environment
+
+---
 
 ## Environment
 
@@ -7,6 +29,8 @@
 - [ ] Project folder is inside `htdocs`
 - [ ] `staynest_db.sql` imported successfully
 - [ ] Homepage loads from `/public`
+
+---
 
 ## Authentication
 
@@ -18,6 +42,8 @@
 - [ ] Guest cannot access dashboard
 - [ ] CSRF-protected forms work
 
+---
+
 ## Role Access
 
 - [ ] Main Admin can access all modules
@@ -26,6 +52,8 @@
 - [ ] Host can access own profile, own properties, own booking overview
 - [ ] Customer can browse and book properties
 - [ ] Staff can view operational pages and reports
+
+---
 
 ## Host and Location
 
@@ -39,6 +67,8 @@
 - [ ] Delete unused host profile
 - [ ] Host with properties cannot be deleted
 
+---
+
 ## Property
 
 - [ ] Add property
@@ -51,6 +81,8 @@
 - [ ] Host sees own properties only
 - [ ] Property with bookings cannot be deleted
 
+---
+
 ## Booking
 
 - [ ] Customer creates booking
@@ -61,6 +93,8 @@
 - [ ] Admin rejects booking
 - [ ] Customer cancels booking
 - [ ] Host sees own property bookings only
+
+---
 
 ## Dashboards and Reports
 
@@ -74,7 +108,9 @@
 - [ ] CSV export works
 - [ ] Print report works
 
-## Final Check
+---
+
+## System Stability & Deployment Validation
 
 - [ ] CSS loads properly
 - [ ] Navbar links work
