@@ -12,6 +12,80 @@ document.addEventListener('DOMContentLoaded', () => {
         roleSelect.addEventListener('change', toggleCompanyField);
     }
 
+    const weakPasswords = ['123456', 'password', 'qwerty', 'abc123'];
+
+    function setInlineError(element, message) {
+        if (!element) return;
+        element.textContent = message;
+        element.hidden = message === '';
+    }
+
+    function validateAccountName(nameInput, errorElement) {
+        if (!nameInput) return true;
+        const value = nameInput.value.trim();
+        let message = '';
+
+        if (value.length < 3) {
+            message = 'Name must be at least 3 characters.';
+        } else if (value.length > 30 || !/^[A-Za-z ]+$/.test(value) || value.replace(/\s/g, '') === '') {
+            message = 'Name must contain only letters and spaces and cannot exceed 30 characters.';
+        }
+
+        nameInput.setCustomValidity(message);
+        setInlineError(errorElement, message);
+        return message === '';
+    }
+
+    function validateAccountPassword(passwordInput, errorElement) {
+        if (!passwordInput) return true;
+        const value = passwordInput.value;
+        let message = '';
+
+        if (value === '' && passwordInput.name === 'new_password') {
+            passwordInput.setCustomValidity('');
+            setInlineError(errorElement, '');
+            return true;
+        }
+
+        if (value.length < 6) {
+            message = 'Password must be at least 6 characters.';
+        } else if (value.length > 50) {
+            message = 'Password cannot exceed 50 characters.';
+        } else if (/^\d+$/.test(value)) {
+            message = 'Password cannot contain only numbers.';
+        } else if (weakPasswords.includes(value.toLowerCase())) {
+            message = 'Please choose a stronger password.';
+        }
+
+        passwordInput.setCustomValidity(message);
+        setInlineError(errorElement, message);
+        return message === '';
+    }
+
+    document.querySelectorAll('.account-validation-form').forEach((form) => {
+        const nameInput = form.querySelector('input[name="name"]');
+        const nameError = form.querySelector('.name-js-error');
+        const passwordInput = form.querySelector('input[name="password"], input[name="new_password"]');
+        const passwordError = form.querySelector('.password-js-error');
+
+        if (nameInput) {
+            nameInput.addEventListener('input', () => validateAccountName(nameInput, nameError));
+        }
+
+        if (passwordInput) {
+            passwordInput.addEventListener('input', () => validateAccountPassword(passwordInput, passwordError));
+        }
+
+        form.addEventListener('submit', (event) => {
+            const isNameValid = validateAccountName(nameInput, nameError);
+            const isPasswordValid = validateAccountPassword(passwordInput, passwordError);
+            if (!isNameValid || !isPasswordValid) {
+                event.preventDefault();
+                (isNameValid ? passwordInput : nameInput)?.reportValidity();
+            }
+        });
+    });
+
     const countryCodeSelect = document.getElementById('countryCodeSelect');
     const phoneInput = document.getElementById('phoneInput');
     const phoneHint = document.getElementById('phoneHint');

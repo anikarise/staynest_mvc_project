@@ -11,11 +11,12 @@
             <div class="alert alert-error"><?= htmlspecialchars($errors['general'], ENT_QUOTES, 'UTF-8'); ?></div>
         <?php endif; ?>
 
-        <form method="post" action="<?= URL_ROOT; ?>/auth/register" novalidate>
+        <form method="post" action="<?= URL_ROOT; ?>/auth/register" class="account-validation-form" novalidate>
             <?= Auth::csrfField(); ?>
 
             <label>Name</label>
-            <input type="text" name="name" value="<?= htmlspecialchars($name ?? '', ENT_QUOTES, 'UTF-8'); ?>" required>
+            <input type="text" name="name" value="<?= htmlspecialchars($name ?? '', ENT_QUOTES, 'UTF-8'); ?>" maxlength="30" autocomplete="name" required>
+            <small class="field-error name-js-error" hidden></small>
             <?php if (!empty($errors['name'])): ?><small class="field-error"><?= htmlspecialchars($errors['name'], ENT_QUOTES, 'UTF-8'); ?></small><?php endif; ?>
 
             <label>Email</label>
@@ -57,11 +58,12 @@
             </div>
 
             <label>Password</label>
-            <input type="password" name="password" required>
+            <input type="password" name="password" maxlength="50" autocomplete="new-password" required>
+            <small class="field-error password-js-error" hidden></small>
             <?php if (!empty($errors['password'])): ?><small class="field-error"><?= htmlspecialchars($errors['password'], ENT_QUOTES, 'UTF-8'); ?></small><?php endif; ?>
 
             <label>Confirm Password</label>
-            <input type="password" name="confirm_password" required>
+            <input type="password" name="confirm_password" maxlength="50" autocomplete="new-password" required>
             <?php if (!empty($errors['confirm_password'])): ?><small class="field-error"><?= htmlspecialchars($errors['confirm_password'], ENT_QUOTES, 'UTF-8'); ?></small><?php endif; ?>
 
             <button class="btn" type="submit">Create Account</button>

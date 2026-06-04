@@ -10,6 +10,8 @@
 
 class User extends Model
 {
+    private array $weakPasswords = ['123456', 'password', 'qwerty', 'abc123'];
+
     public function findByEmail(string $email): ?array
     {
         // Login uses email lookup before password verification.
@@ -59,6 +61,42 @@ class User extends Model
         ]);
 
         return (int) $this->db->lastInsertId();
+    }
+
+    public function validateName(string $name): ?string
+    {
+        $name = trim($name);
+
+        if (strlen($name) < 3) {
+            return 'Name must be at least 3 characters.';
+        }
+
+        if (strlen($name) > 30 || !preg_match('/^[A-Za-z ]+$/', $name) || trim(str_replace(' ', '', $name)) === '') {
+            return 'Name must contain only letters and spaces and cannot exceed 30 characters.';
+        }
+
+        return null;
+    }
+
+    public function validatePasswordStrength(string $password): ?string
+    {
+        if (strlen($password) < 6) {
+            return 'Password must be at least 6 characters.';
+        }
+
+        if (strlen($password) > 50) {
+            return 'Password cannot exceed 50 characters.';
+        }
+
+        if (preg_match('/^\d+$/', $password)) {
+            return 'Password cannot contain only numbers.';
+        }
+
+        if (in_array(strtolower($password), $this->weakPasswords, true)) {
+            return 'Please choose a stronger password.';
+        }
+
+        return null;
     }
 
     public function updateProfile(int $userId, array $data): bool

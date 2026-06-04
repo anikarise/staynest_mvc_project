@@ -110,13 +110,15 @@ class UserController extends Controller
                 $newPassword = $this->input('new_password');
                 $confirmPassword = $this->input('confirm_password');
 
-                if (strlen($data['name']) < 3) {
-                    $data['errors']['name'] = 'Name must be at least 3 characters.';
+                $nameValidation = $this->userModel->validateName($data['name']);
+                if ($nameValidation !== null) {
+                    $data['errors']['name'] = $nameValidation;
                 }
 
                 if ($newPassword !== '') {
-                    if (strlen($newPassword) < 6) {
-                        $data['errors']['new_password'] = 'New password must be at least 6 characters.';
+                    $passwordValidation = $this->userModel->validatePasswordStrength($newPassword);
+                    if ($passwordValidation !== null) {
+                        $data['errors']['new_password'] = $passwordValidation;
                     }
 
                     if ($newPassword !== $confirmPassword) {

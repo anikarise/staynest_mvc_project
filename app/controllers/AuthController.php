@@ -103,8 +103,9 @@ class AuthController extends Controller
                 // Public registration intentionally excludes admin roles.
                 $allowedPublicRoles = ['customer', 'staff', 'host'];
 
-                if (strlen($data['name']) < 3) {
-                    $data['errors']['name'] = 'Name must be at least 3 characters.';
+                $nameValidation = $this->userModel->validateName($data['name']);
+                if ($nameValidation !== null) {
+                    $data['errors']['name'] = $nameValidation;
                 }
 
                 if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
@@ -126,8 +127,9 @@ class AuthController extends Controller
                     $data['errors']['company_name'] = 'Host accounts must include a company or host name.';
                 }
 
-                if (strlen($password) < 6) {
-                    $data['errors']['password'] = 'Password must be at least 6 characters.';
+                $passwordValidation = $this->userModel->validatePasswordStrength($password);
+                if ($passwordValidation !== null) {
+                    $data['errors']['password'] = $passwordValidation;
                 }
 
                 if ($password !== $confirmPassword) {
