@@ -1,0 +1,54 @@
+StayNest Booking Management - Tests Conducted
+
+The Booking Management component was tested using validation testing, boundary testing, CRUD testing, role-based access testing, database verification, search/filter testing, and backend evidence checking.
+
+Tests Conducted:
+
+1. Booking Check-in Date Validation
+Tested empty check-in date, past check-in date, today’s date, tomorrow’s date, 119 days from today, 120 days from today, 121+ days from today, very far future date, invalid date format, and valid check-in with valid checkout.
+
+2. Booking Check-out Date Validation
+Tested empty check-out date, check-out before check-in, check-out same as check-in, one-night stay, two-night stay, 59 nights, 60 nights, 61+ nights, invalid checkout format, and very long stay.
+
+3. Create Booking Workflow
+Tested booking creation using approved available property, no property selected, property dropdown restriction, logged-out booking attempt, successful customer booking, pending booking status, and database insertion.
+
+4. Overlapping Booking Prevention
+Tested exact same dates as an existing confirmed booking, partially overlapping start date, partially overlapping end date, non-overlapping dates, cancelled/rejected booking date reuse, and backend overlap validation.
+
+5. Booking Status Management
+Tested pending, confirmed, rejected, and cancelled status handling. Admin approval, rejection, cancellation, invalid status values, and hidden customer approval controls were also tested.
+
+6. Booking Search and Filter
+Tested empty search, search by booking ID, customer name, property title, location, status filter, combined search and filter, reset button, special characters, and SQL-like input.
+
+7. Edit Pending Booking
+Tested editing own pending booking, editing valid dates, recalculating total price, blocking confirmed/cancelled booking edits, blocking another user’s booking edit, invalid booking ID, and overlapping updated dates.
+
+8. Cancel Booking
+Tested customer cancellation, admin cancellation, already cancelled booking, rejected booking handling, invalid booking ID, another user’s booking cancellation, confirmation popup, and database status update.
+
+9. Role-Based Booking Access
+Tested logged-out access, customer access to own bookings, host access to own property bookings, admin access to all bookings, restricted booking actions, direct URL manipulation, invalid role/session handling, and browser back after logout.
+
+10. Booking Total Amount Calculation
+Tested 0 nights, negative date range, 1 night, 2 nights, 30 nights, 59 nights, 60 nights, 61+ nights, high-price property, frontend estimate, backend server-side calculation, and database total price storage.
+
+Backend Evidence Checked:
+BookingController.php overlap validation
+BookingController.php total price calculation
+Booking status initialization
+Booking model conflict checking
+Server-side booking validation
+
+Database Evidence Checked:
+bookings table
+booking_status column
+check_in_date and check_out_date columns
+total_price column
+new booking inserted
+cancelled booking status updated
+confirmed booking status stored
+
+Conclusion:
+The Booking Management component successfully supports booking creation, validation, editing, cancellation, search/filtering, booking status control, overlap prevention, role-based access, and total price calculation.

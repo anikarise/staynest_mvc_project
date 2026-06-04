@@ -1,0 +1,63 @@
+StayNest Booking Management - Test Data
+
+Component:
+Booking Management
+
+Tester:
+Anika Jahan Tuba
+
+Environment:
+XAMPP localhost
+Database: staynest_db
+URL: http://localhost/staynest_mvc_project/public
+
+Test Accounts:
+Customer: customer@staynest.test
+Second Customer: customer2@staynest.test
+Main Admin: admin@staynest.test
+Booking & Property Admin: bookingadmin@staynest.test
+Host: host@staynest.test
+
+Test Data Used:
+Approved property selected from dropdown list
+Pending booking record
+Confirmed booking record
+Cancelled booking record
+Rejected booking record
+Existing active booking date range
+Future check-in date
+Past check-in date
+Same check-in and check-out date
+Check-out before check-in
+Booking longer than 60 days
+Check-in date more than 120 days in future
+Search by booking ID
+Search by customer name
+Search by property title
+Search by location
+Filter by status: pending, confirmed, rejected, cancelled
+
+Main Invalid Inputs:
+Empty check-in date
+Empty check-out date
+Past check-in date
+Same check-in and check-out date
+Check-out before check-in
+Overlapping booking date
+No property selected
+Unauthenticated booking attempt
+Customer attempting admin-only booking action
+Very long search input
+SQL-like search input
+
+Expected Results:
+Valid bookings are created successfully.
+Customer bookings are saved as pending.
+Admin/manager booking actions update booking status.
+Invalid booking dates are rejected.
+Overlapping bookings are blocked.
+Booking longer than 60 days is rejected.
+Future check-in beyond 120 days is rejected.
+Search and filter return matching booking records.
+Total price is calculated from number of nights and property nightly price.
+Valid booking data is stored in the bookings table.
